@@ -16,12 +16,12 @@ class Node:
         print("Backward Weights:")
         print("[")
         for w in self.weights_backward:
-            print(w.start_node, w.end_node, w.value)
+            print(w.start_node, w.end_node)
         print("]")
         print("Forward Weights:")
         print("[")
         for w in self.weights_forward:
-            print(w.start_node, w.end_node, w.value)
+            print(w.start_node, w.end_node)
         print("]")
 
 

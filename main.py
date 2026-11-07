@@ -27,11 +27,26 @@ def main():
 
     num_examples = len(examples)
 
+
+
     num_inputs = 2
 
     num_outputs = 1
 
     num_hidden_units = 4
+
+    total_nodes = num_inputs + num_hidden_units + num_outputs
+
+    weights = np.random.uniform(-0.1, 0.1, size=(total_nodes, total_nodes))
+
+    print("[")
+    for i in range(0, total_nodes):
+        print("[", end="")
+        for j in range(0, total_nodes):
+            print(weights[i][j], "", end="")
+        print("]")
+    print("]")
+    print("")
 
     output_nodes = []
     input_nodes = []
@@ -42,16 +57,14 @@ def main():
     for i in range(0, num_inputs):
         input_forward_weights = []
         for j in range(0, num_hidden_units):
-            weight_value = np.random.uniform(-0.1, 0.1)
-            input_forward_weights.append(Weight(i, j, weight_value))
+            input_forward_weights.append(Weight(i, j))
         weight_array_layer_1.append(input_forward_weights)
         input_nodes.append(Node(i, NodeType.INPUT, [], input_forward_weights))
 
     for k in range(0, num_outputs):
         output_backward_weights = []
         for j in range(0, num_hidden_units):
-            weight_value = np.random.uniform(-0.1, 0.1)
-            output_backward_weights.append(Weight(j, k, weight_value))
+            output_backward_weights.append(Weight(j, k))
         weight_array_layer_2.append(output_backward_weights)
         output_nodes.append(Node(k, NodeType.OUTPUT, output_backward_weights, []))
 
@@ -87,7 +100,7 @@ def main():
     for hidden in hidden_nodes:
         weighted_sum = 0
         for weight in hidden.weights_backward:
-            weighted_sum += (input_nodes[weight.start_node].output * weight.value)
+            weighted_sum += (input_nodes[weight.start_node].output * weights[weight.start_node][weight.end_node])
         hidden.output = sigmoid(weighted_sum)
         hidden.sum_of_weighted_inputs = weighted_sum
         print(hidden.output)
@@ -95,13 +108,14 @@ def main():
     for output in output_nodes:
         weighted_sum = 0
         for weight in output.weights_backward:
-            weighted_sum += (hidden_nodes[weight.start_node].output * weight.value)
+            weighted_sum += (hidden_nodes[weight.start_node].output * weights[weight.start_node][weight.end_node])
         output.output = sigmoid(weighted_sum)
         print(output.output)
         delta = target - output.output
         output.delta = delta
 
     # backprop
+    
     # calculate and save deltas dont have to do for input layer
     # then apply weight change rule
     # update weights by associated weight change
