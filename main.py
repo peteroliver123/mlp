@@ -55,16 +55,6 @@ def main():
         weight_array_layer_2.append(output_backward_weights)
         output_nodes.append(Node(k, NodeType.OUTPUT, output_backward_weights, []))
 
-    for i in range(0, num_inputs):
-        for j in range(0, num_hidden_units):
-            weight = weight_array_layer_1[i][j]
-            print(weight.start_node, weight.end_node, weight.value)
-
-    for k in range(0, num_outputs):
-        for j in range(0, num_hidden_units):
-            weight = weight_array_layer_2[k][j]
-            print(weight.start_node, weight.end_node, weight.value)
-
     for j in range(0, num_hidden_units):
         forward_hidden_weights = []
         backward_hidden_weights = []
@@ -86,30 +76,6 @@ def main():
 
     for out in output_nodes:
         out.reveal_node()
-
-    """for j in range(0, num_hidden_units):
-        for i in range(0, num_inputs):
-            weight_value = np.random.uniform(-0.1, 0.1)
-            hidden_weights_backward.append(Weight(i, j, weight_value))
-            weights_forward_input.append(Weight(i, j, weight_value))
-
-        for k in range(0, num_outputs):
-
-            weight_value = np.random.uniform(-0.1, 0.1)
-            hidden_weights_forward.append(Weight(j, k, weight_value))
-            weights_backward_output.append(Weight(j, k, weight_value))
-            output_nodes.append(Node(k, NodeType.OUTPUT, weights_backward_output, []))
-        hidden_nodes.append(Node(j, NodeType.HIDDEN, hidden_weights_backward, hidden_weights_forward))
-
-
-    input_nodes.append(Node(i, NodeType.INPUT, [], weights_forward_input))
-
-    for input_n in input_nodes:
-        input_n.reveal_node()
-    for hidden_n in hidden_nodes:
-        hidden_n.reveal_node()
-    for output_n in output_nodes:
-        output_n.reveal_node()
 
     # set an example
     # then for each input node, calculate y for each connected hidden unit
@@ -133,7 +99,12 @@ def main():
         output.output = sigmoid(weighted_sum)
         print(output.output)
         delta = target - output.output
-        output.delta = delta"""
+        output.delta = delta
+
+    # backprop
+    # calculate and save deltas dont have to do for input layer
+    # then apply weight change rule
+    # update weights by associated weight change
 
 
     #what if we made a recursive function, which starts with a node, passes weight and delta (after calculating)
