@@ -7,6 +7,9 @@ import numpy as np
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
+def sigmoid_derivative(z):
+    return z * (1 - z)
+
 def delta_rule(delta_j, x_i):
     learning_rate = 1
     return learning_rate * delta_j * x_i
@@ -51,6 +54,7 @@ def main():
     output_nodes = []
     input_nodes = []
     hidden_nodes = []
+    learning_rate = 1
 
     weight_array_layer_1 = []
     weight_array_layer_2 = []
@@ -113,9 +117,31 @@ def main():
         print(output.output)
         delta = target - output.output
         output.delta = delta
+        for weight in output.weights_backward:
+            input_node = hidden_nodes[weight.start_node]
+            weights[weight.start_node][weight.end_node] = -1 * learning_rate * output.delta * input_node.output
 
     # backprop
-    
+    for hidden in hidden_nodes:
+        summer = 0
+        for weight in hidden.weights_forward:
+            previous_node = output_nodes[weight.end_node]
+            print("Value of Z: ", hidden.sum_of_weighted_inputs)
+            summer += previous_node.delta * weights[weight.start_node][weight.end_node] * sigmoid_derivative(hidden.sum_of_weighted_inputs)
+        hidden.delta = summer
+        for weight in hidden.weights_backward:
+            input_node = input_nodes[weight.start_node]
+            weights[weight.start_node][weight.end_node] = -1 * learning_rate * hidden.delta * input_node.output
+
+    print("[")
+    for i in range(0, total_nodes):
+        print("[", end="")
+        for j in range(0, total_nodes):
+            print(weights[i][j], "", end="")
+        print("]")
+    print("]")
+    print("")
+
     # calculate and save deltas dont have to do for input layer
     # then apply weight change rule
     # update weights by associated weight change
