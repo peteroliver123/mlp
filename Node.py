@@ -1,3 +1,5 @@
+import numpy as np
+
 class Node:
     def __init__(self, id):
         self.id = id
@@ -6,6 +8,7 @@ class Node:
 
         self.output = None
         self.delta = None
+        self.bias = np.random.uniform(-0.1, 0.1)
         self.sum_of_weighted_inputs = None
 
     def reveal_node(self):
