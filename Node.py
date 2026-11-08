@@ -1,18 +1,18 @@
 from NodeType import NodeType
 
 class Node:
-    def __init__(self, id_in_array, node_type, weights_backward, weights_forward):
-        self.id_in_array = id_in_array
+    def __init__(self, id, node_type):
+        self.id = id
         self.node_type = node_type
-        self.weights_backward = weights_backward
-        self.weights_forward = weights_forward
+        self.weights_backward = []
+        self.weights_forward = []
 
         self.output = None
         self.delta = None
         self.sum_of_weighted_inputs = None
 
     def reveal_node(self):
-        print("Node of", self.node_type, "with id", self.id_in_array)
+        print("Node of", self.node_type, "with id", self.id)
         print("Backward Weights:")
         print("[")
         for w in self.weights_backward:
