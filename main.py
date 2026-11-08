@@ -1,5 +1,4 @@
 from Example import Example
-from NodeType import NodeType
 from Weight import Weight
 from Node import Node
 import numpy as np
@@ -57,9 +56,11 @@ def main():
     print("]")
     print("")
 
-    input_nodes = [Node(i, NodeType.INPUT) for i in range(0, num_inputs)]
-    hidden_nodes = [Node(j, NodeType.HIDDEN) for j in range(num_inputs, num_inputs + num_hidden_units)]
-    output_nodes = [Node(k, NodeType.OUTPUT) for k in range(num_inputs + num_hidden_units, total_nodes)]
+    input_nodes = [Node(i) for i in range(0, num_inputs)]
+    hidden_nodes = [Node(j) for j in range(num_inputs, num_inputs + num_hidden_units)]
+    output_nodes = [Node(k) for k in range(num_inputs + num_hidden_units, total_nodes)]
+
+    #can this be one large nodes array
 
     learning_rate = 1
 
@@ -115,7 +116,7 @@ def main():
         output.delta = delta
         for weight in output.weights_backward:
             input_node = hidden_nodes[conversion_scheme(weight.start_node, num_inputs, num_hidden_units)]
-            weights[weight.start_node][weight.end_node] = -1 * learning_rate * output.delta * input_node.output
+            weights[weight.start_node][weight.end_node] += -1 * learning_rate * output.delta * input_node.output
 
     # backprop
     for hidden in hidden_nodes:
@@ -126,7 +127,7 @@ def main():
         hidden.delta = summer
         for weight in hidden.weights_backward:
             input_node = input_nodes[conversion_scheme(weight.start_node, num_inputs, num_hidden_units)]
-            weights[weight.start_node][weight.end_node] = -1 * learning_rate * hidden.delta * input_node.output
+            weights[weight.start_node][weight.end_node] += -1 * learning_rate * hidden.delta * input_node.output
 
     print("[")
     for i in range(0, total_nodes):
