@@ -1,7 +1,10 @@
+from xml.etree.ElementTree import tostring
+
 from Example import Example
 from Weight import Weight
 from Node import Node
 import numpy as np
+import math
 
 def sigmoid(z):
     if z >= 0:
@@ -129,6 +132,30 @@ def main():
             ### Verify Weights Changed After Back Prop ###
             #output_weight_matrix(total_nodes, weights)
         print("Average Error: ", total_error / num_examples)
+
+    ### TESTING ###
+    print()
+    print("### TESTING ###")
+    for example in range(0, num_examples):
+        resultString = "( "
+        for h in range(0, num_inputs):
+            nodes[h].output = examples[example].input_of[h]
+            resultString = resultString + str(examples[example].input_of[h]) + " "
+        resultString += ")"
+        target = examples[example].target
+
+        for j in range(num_inputs, num_inputs + num_hidden_units):
+            # Forward pass
+            get_weighted_sum(nodes, weights, j)
+
+        for k in range(num_inputs + num_hidden_units, total_nodes):
+            # Forward pass
+            output = get_weighted_sum(nodes, weights, k)
+            if math.isclose(output.output, target, abs_tol=0.1):
+                print("Input: ", resultString, "gave approx output: ", target)
+
+
+
 
 if __name__ == "__main__":
     main()
