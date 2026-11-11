@@ -1,10 +1,9 @@
-from xml.etree.ElementTree import tostring
-
 from Example import Example
 from Weight import Weight
 from Node import Node
 import numpy as np
 import math
+from MLP import MLP
 
 def sigmoid(z):
     if z >= 0:
@@ -28,15 +27,7 @@ def fill_examples():
                 ]
     return examples
 
-def output_weight_matrix(total_nodes, weights):
-    print("[")
-    for i in range(0, total_nodes):
-        print("[", end="")
-        for j in range(0, total_nodes):
-            print(weights[i][j], "", end="")
-        print("]")
-    print("]")
-    print("")
+
 
 def weight_update(current_layer, nodes, weights, learning_rate):
     current_layer.bias += learning_rate * current_layer.delta
@@ -55,106 +46,82 @@ def get_weighted_sum(nodes, weights, index):
 
 def main():
     print("MLP Project Started!")
-    examples = fill_examples()
-    num_examples = len(examples)
 
+    # MLP Setting
     num_inputs = 2
-    num_outputs = 1
     num_hidden_units = 4
-    learning_rate = 0.5
+    num_outputs = 1
+    examples = fill_examples()
 
-    total_nodes = num_inputs + num_hidden_units + num_outputs
-    weights = np.random.uniform(-1, 1, size=(total_nodes, total_nodes))
+    ### MLP Setup ###
+    my_mlp = MLP(num_inputs, num_hidden_units, num_outputs, examples)
+    my_mlp.verify_weight_init()
+    my_mlp.weight_attaching()
+    my_mlp.verify_weight_attaching()
+    backprop(my_mlp)
 
-    ### Verify Weight Matrix Initialisation ###
-    output_weight_matrix(total_nodes, weights)
-
-    nodes = [Node(i) for i in range(0, total_nodes)]
-    #can this be one large nodes array
-
-    ### Setup Weights ###
-    for i in range(0, num_inputs):
-        input_n = nodes[i]
-        for j in range(num_inputs, num_inputs + num_hidden_units):
-            hidden_n = nodes[j]
-            input_n.weights_forward.append(Weight(input_n.id, hidden_n.id))
-            hidden_n.weights_backward.append(Weight(input_n.id, hidden_n.id))
-
-    for k in range(num_inputs + num_hidden_units, total_nodes):
-        output_n = nodes[k]
-        for j in range(num_inputs, num_inputs + num_hidden_units):
-            hidden_n = nodes[j]
-            output_n.weights_backward.append(Weight(hidden_n.id, output_n.id))
-            hidden_n.weights_forward.append(Weight(hidden_n.id, output_n.id))
-
-    ### Verify Weights Attached to Nodes ###
-    for i in range(0, total_nodes):
-        node = nodes[i]
-        node.reveal_node()
-
+def backprop(my_mlp):
     ### True Start of Back Prop ###
     for epoch in range(0, 11600):
         total_error = 0
-        for example in range(0, num_examples):
-            for h in range(0, num_inputs):
-                nodes[h].output = examples[example].input_of[h]
-            target = examples[example].target
+        for ex in range(0, my_mlp.num_examples):
+            for h in range(0, my_mlp.num_input_units):
+                my_mlp.nodes_array[h].output = my_mlp.examples[ex].input_of[h]
+            target = my_mlp.examples[ex].target
 
-            for j in range(num_inputs, num_inputs + num_hidden_units):
+            for j in range(my_mlp.num_input_units, my_mlp.num_input_units + my_mlp.num_hidden_units):
                 # Forward pass
-                get_weighted_sum(nodes, weights, j)
+                get_weighted_sum(my_mlp.nodes_array, my_mlp.weights, j)
 
-            for k in range(num_inputs + num_hidden_units, total_nodes):
+            for k in range(my_mlp.num_input_units + my_mlp.num_hidden_units, my_mlp.total_nodes):
                 # Forward pass
-                output = get_weighted_sum(nodes, weights, k)
-                print("The Result after example", example, "epoch", epoch, "was", output.output)
+                output = get_weighted_sum(my_mlp.nodes_array, my_mlp.weights, k)
+                print("The Result after example", ex, "epoch", epoch, "was", output.output)
                 total_error += 0.5 * (target - output.output)**2
                 #Backward pass for output unit
                 output.delta = (target - output.output) * sigmoid_derivative(output.output)
 
-            for j in range(num_inputs, num_inputs + num_hidden_units):
+            for j in range(my_mlp.num_input_units, my_mlp.num_input_units + my_mlp.num_hidden_units):
                 #Backward pass for hidden unit
-                hidden = nodes[j]
+                hidden = my_mlp.nodes_array[j]
                 summer = 0
                 for weight in hidden.weights_forward:
-                    next_node = nodes[weight.end_node]
-                    summer += (next_node.delta * weights[weight.start_node][weight.end_node])
+                    next_node = my_mlp.nodes_array[weight.end_node]
+                    summer += (next_node.delta * my_mlp.weights[weight.start_node][weight.end_node])
                 hidden.delta = summer * sigmoid_derivative(hidden.output)
 
-            for k in range(num_inputs + num_hidden_units, total_nodes):
-                output = nodes[k]
-                weight_update(output, nodes, weights, learning_rate)
+            for k in range(my_mlp.num_input_units + my_mlp.num_hidden_units, my_mlp.total_nodes):
+                output = my_mlp.nodes_array[k]
+                weight_update(output, my_mlp.nodes_array, my_mlp.weights, my_mlp.LEARNING_RATE)
 
-            for j in range(num_inputs, num_inputs + num_hidden_units):
-                hidden = nodes[j]
-                weight_update(hidden, nodes, weights, learning_rate)
+            for j in range(my_mlp.num_input_units, my_mlp.num_input_units + my_mlp.num_hidden_units):
+                hidden = my_mlp.nodes_array[j]
+                weight_update(hidden, my_mlp.nodes_array, my_mlp.weights, my_mlp.LEARNING_RATE)
 
             ### Verify Weights Changed After Back Prop ###
             #output_weight_matrix(total_nodes, weights)
-        print("Average Error: ", total_error / num_examples)
+        print("Average Error: ", total_error / my_mlp.num_examples)
 
     ### TESTING ###
     print()
     print("### TESTING ###")
-    for example in range(0, num_examples):
-        resultString = "( "
-        for h in range(0, num_inputs):
-            nodes[h].output = examples[example].input_of[h]
-            resultString = resultString + str(examples[example].input_of[h]) + " "
-        resultString += ")"
-        target = examples[example].target
+    for example in range(0, my_mlp.num_examples):
+        result_string = "( "
+        for h in range(0, my_mlp.num_input_units):
+            my_mlp.nodes_array[h].output = my_mlp.examples[example].input_of[h]
+            result_string = result_string + str(my_mlp.examples[example].input_of[h]) + " "
+        result_string += ")"
+        target = my_mlp.examples[example].target
 
-        for j in range(num_inputs, num_inputs + num_hidden_units):
+        for j in range(my_mlp.num_input_units, my_mlp.num_input_units + my_mlp.num_hidden_units):
             # Forward pass
-            get_weighted_sum(nodes, weights, j)
+            get_weighted_sum(my_mlp.nodes_array, my_mlp.weights, j)
 
-        for k in range(num_inputs + num_hidden_units, total_nodes):
+        for k in range(my_mlp.num_input_units + my_mlp.num_hidden_units, my_mlp.total_nodes):
             # Forward pass
-            output = get_weighted_sum(nodes, weights, k)
+            output = get_weighted_sum(my_mlp.nodes_array, my_mlp.weights, k)
             if math.isclose(output.output, target, abs_tol=0.1):
-                print("Input: ", resultString, "gave approx output: ", target)
-
-
+                print("Input: ", result_string, "gave approx output: ", target)
 
 
 if __name__ == "__main__":
