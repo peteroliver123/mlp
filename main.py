@@ -58,7 +58,7 @@ def main():
     num_inputs = 2
     num_outputs = 1
     num_hidden_units = 4
-    learning_rate = 0.1
+    learning_rate = 0.5
 
     total_nodes = num_inputs + num_hidden_units + num_outputs
     weights = np.random.uniform(-1, 1, size=(total_nodes, total_nodes))
@@ -90,14 +90,12 @@ def main():
         node.reveal_node()
 
     ### True Start of Back Prop ###
-    for epoch in range(0, 10000):
+    for epoch in range(0, 11600):
+        total_error = 0
         for example in range(0, num_examples):
             for h in range(0, num_inputs):
                 nodes[h].output = examples[example].input_of[h]
             target = examples[example].target
-
-            print(nodes[0].output)
-            print(nodes[1].output)
 
             for j in range(num_inputs, num_inputs + num_hidden_units):
                 # Forward pass
@@ -106,8 +104,8 @@ def main():
             for k in range(num_inputs + num_hidden_units, total_nodes):
                 # Forward pass
                 output = get_weighted_sum(nodes, weights, k)
-
                 print("The Result after example", example, "epoch", epoch, "was", output.output)
+                total_error += 0.5 * (target - output.output)**2
                 #Backward pass for output unit
                 output.delta = (target - output.output) * sigmoid_derivative(output.output)
 
@@ -130,6 +128,7 @@ def main():
 
             ### Verify Weights Changed After Back Prop ###
             #output_weight_matrix(total_nodes, weights)
+        print("Average Error: ", total_error / num_examples)
 
 if __name__ == "__main__":
     main()
