@@ -49,34 +49,38 @@ def main():
 
     # MLP Setting
     # Q1
-    # num_inputs = 2
-    #num_hidden_units = 4
-    # num_outputs
-    #file_title = "results/results_q1.dat"
-    #examples = fill_examples_q1()
-    #test_data = examples
-    #f = sigmoid
-    #f_prime = sigmoid_derivative
-
-    #Q3
-    num_inputs = 4
+    num_inputs = 2
     num_hidden_units = 6
     num_outputs = 1
-    file_title = "results/results_q3.dat"
-    all_data = fill_examples_q2()
-    examples = all_data[:400]
-    test_data = all_data[400:500]
-    f_hidden = tanh
-    f_prime_hidden = tanh_derivative
-    f_output = linear
-    f_prime_output = linear_derivative
+    file_title = "results/results_q1.dat"
+    examples = fill_examples_q1()
+    test_data = examples
+    f_hidden = sigmoid
+    f_prime_hidden = sigmoid_derivative
+    f_output = sigmoid
+    f_prime_output = sigmoid_derivative
+    num_epochs = 13000
+
+    #Q3
+    # num_inputs = 4
+    # num_hidden_units = 6
+    # num_outputs = 1
+    # file_title = "results/results_q3.dat"
+    # all_data = fill_examples_q2()
+    # examples = all_data[:400]
+    # test_data = all_data[400:500]
+    # f_hidden = tanh
+    # f_prime_hidden = tanh_derivative
+    # f_output = linear
+    # f_prime_output = linear_derivative
+    # num_epochs = 5000
 
     ### MLP Setup ###
     my_mlp = MLP(num_inputs, num_hidden_units, num_outputs, examples)
     my_mlp.verify_weight_init()
     my_mlp.weight_attaching()
     my_mlp.verify_weight_attaching()
-    train_model(my_mlp, 10000, file_title, f_hidden, f_prime_hidden, f_output, f_prime_output)
+    train_model(my_mlp, num_epochs, file_title, f_hidden, f_prime_hidden, f_output, f_prime_output)
     test_model(my_mlp, test_data, f_hidden, f_output)
 
 def train_model(my_mlp, num_epochs, file_title, f_hidden, f_prime_hidden, f_output, f_prime_output):
