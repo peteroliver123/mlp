@@ -3,24 +3,36 @@ import math
 from MLP import MLP
 import numpy as np
 import random
+from LetterConverter import LetterConverter
 
-def fill_examples_q1():
+def fill_examples_1():
     examples = [
-                    Example((0, 0), 0),
-                    Example((0, 1), 1),
-                    Example((1,0), 1),
-                    Example((1,1), 0)
+                    Example((0, 0), [0]),
+                    Example((0, 1), [1]),
+                    Example((1,0), [1]),
+                    Example((1,1), [0])
                 ]
     return examples
 
-def fill_examples_q2():
+def fill_examples_2():
     examples = []
     for i in range(0, 500):
         inputs = np.random.uniform(-1, 1, size=4)
-        output = math.sin(inputs[0] - inputs[1] + inputs[2] - inputs[3])
+        output = [math.sin(inputs[0] - inputs[1] + inputs[2] - inputs[3])]
         inputs = Example(inputs, output)
         examples.append(inputs)
     return examples
+
+def fill_examples_3():
+    with open("letter-recognition.data.txt", "r") as file:
+        raw_text = file.readlines()
+        examples = []
+        for line in raw_text:
+            my_letter = line[0]
+            let_conv = LetterConverter()
+            output_array = let_conv.convert_letter(my_letter)
+            examples.append(Example([int(x) / 15.0 for x in line[2:-1].split(',')], output_array))
+        return examples
 
 def sigmoid(z):
     if z >= 0:
@@ -49,31 +61,44 @@ def main():
 
     # MLP Setting
     # Q1
-    num_inputs = 2
-    num_hidden_units = 6
-    num_outputs = 1
-    file_title = "results/results_q1.dat"
-    examples = fill_examples_q1()
-    test_data = examples
+    #num_inputs = 2
+    #num_hidden_units = 6
+    #num_outputs = 1
+    #file_title = "results/results_q1.dat"
+    #examples = fill_examples_1()
+    #test_data = examples
+    #f_hidden = sigmoid
+    #f_prime_hidden = sigmoid_derivative
+    #f_output = sigmoid
+    #f_prime_output = sigmoid_derivative
+    #num_epochs = 13000
+    #Q3
+    #num_inputs = 4
+    #num_hidden_units = 6
+    #num_outputs = 1
+    #file_title = "results/results_q3.dat"
+    #all_data = fill_examples_2()
+    #examples = all_data[:400]
+    #test_data = all_data[400:500]
+    #f_hidden = tanh
+    #f_prime_hidden = tanh_derivative
+    #f_output = linear
+    #f_prime_output = linear_derivative
+    #num_epochs = 5000
+
+    #Q5
+    num_inputs = 16
+    num_hidden_units = 20
+    num_outputs = 26
+    file_title = "results/results_q5.dat"
+    all_data = fill_examples_3()
+    examples = all_data[:16000]
+    test_data = all_data[16000:20000]
     f_hidden = sigmoid
     f_prime_hidden = sigmoid_derivative
     f_output = sigmoid
     f_prime_output = sigmoid_derivative
-    num_epochs = 13000
-
-    #Q3
-    # num_inputs = 4
-    # num_hidden_units = 6
-    # num_outputs = 1
-    # file_title = "results/results_q3.dat"
-    # all_data = fill_examples_q2()
-    # examples = all_data[:400]
-    # test_data = all_data[400:500]
-    # f_hidden = tanh
-    # f_prime_hidden = tanh_derivative
-    # f_output = linear
-    # f_prime_output = linear_derivative
-    # num_epochs = 5000
+    num_epochs = 100
 
     ### MLP Setup ###
     my_mlp = MLP(num_inputs, num_hidden_units, num_outputs, examples)
@@ -81,7 +106,7 @@ def main():
     my_mlp.weight_attaching()
     my_mlp.verify_weight_attaching()
     train_model(my_mlp, num_epochs, file_title, f_hidden, f_prime_hidden, f_output, f_prime_output)
-    test_model(my_mlp, test_data, f_hidden, f_output)
+    #test_model(my_mlp, test_data, f_hidden, f_output)
 
 def train_model(my_mlp, num_epochs, file_title, f_hidden, f_prime_hidden, f_output, f_prime_output):
     ### True Start of Back Prop ###
@@ -103,9 +128,9 @@ def train_model(my_mlp, num_epochs, file_title, f_hidden, f_prime_hidden, f_outp
                     # Forward pass
                     output = my_mlp.get_weighted_sum(k, f_output)
                     #print("The Result after example", ex, "epoch", epoch, "was", output.output)
-                    total_error += 0.5 * (target - output.output)**2
+                    total_error += 0.5 * (target[k - my_mlp.num_input_units - my_mlp.num_hidden_units] - output.output)**2
                     #Backward pass for output unit
-                    output.delta = (target - output.output) * f_prime_output(output.output)
+                    output.delta = (target[k - my_mlp.num_input_units - my_mlp.num_hidden_units] - output.output) * f_prime_output(output.output)
 
                 for j in range(my_mlp.num_input_units, my_mlp.num_input_units + my_mlp.num_hidden_units):
                     #Backward pass for hidden unit
@@ -132,6 +157,7 @@ def test_model(my_mlp, examples, f_hidden, f_output):
     ### TESTING with Exterior Examples ###
     print()
     print("### TESTING ###")
+    total_error = 0.0
     for ex in range(0, len(examples)):
         result_string = "( "
         for h in range(0, my_mlp.num_input_units):
@@ -147,12 +173,13 @@ def test_model(my_mlp, examples, f_hidden, f_output):
         for k in range(my_mlp.num_input_units + my_mlp.num_hidden_units, my_mlp.total_nodes):
             # Forward pass
             output = my_mlp.get_weighted_sum(k, f_output)
-            if math.isclose(output.output, target, abs_tol=0.1):
-                print("Input: ", result_string, "gave approx output: ", target)
+            total_error += 0.5 * (target[k - my_mlp.num_input_units - my_mlp.num_hidden_units] - output.output)**2
+            if math.isclose(output.output, target[k - my_mlp.num_input_units - my_mlp.num_hidden_units], abs_tol=0.1):
+                print("Input: ", result_string, "gave approx output: ", target[k - my_mlp.num_input_units - my_mlp.num_hidden_units])
             else:
                 print("TEST FAILED")
-                print("Input: ", result_string, "gave", output.output," and didn't approx equal: ", target)
-
+                print("Input: ", result_string, "gave", output.output," and didn't approx equal: ", target[k - my_mlp.num_input_units - my_mlp.num_hidden_units])
+    print("Error on Test Set: ", total_error / len(examples))
 
 if __name__ == "__main__":
     main()
